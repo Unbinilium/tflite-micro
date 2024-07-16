@@ -18,6 +18,6 @@ limitations under the License.
 #define FIXED_POINT 16
 namespace kiss_fft_fixed16 {
 #include "kiss_fft.c"
-#include "tools/kiss_fftr.c"
+#include "kiss_fftr.c"
 }  // namespace kiss_fft_fixed16
 #undef FIXED_POINT
