@@ -1,6 +1,3 @@
-
-
-
 cmake_minimum_required(VERSION 3.10)
 
 project(tflm)
@@ -48,6 +45,7 @@ set(lib_srcs
           "${srcs_tflite_bridge}"
           "${src_micro_frontend}"
           "${signal_srcs}"
+          "${tflite_dir}/array.cc"
           "${tflite_dir}/kernels/kernel_util.cc"
           "${tflite_dir}/micro/memory_planner/greedy_memory_planner.cc"
           "${tflite_dir}/micro/memory_planner/linear_memory_planner.cc"
@@ -75,15 +73,20 @@ set(priv_req)
 
 add_library(${PROJECT_NAME} STATIC ${lib_srcs})
 
-target_include_directories(${PROJECT_NAME} PRIVATE
-    "${CMAKE_CURRENT_SOURCE_DIR}"
-    "${CMAKE_CURRENT_SOURCE_DIR}/third_party/gemmlowp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/third_party/flatbuffers/include"
-    "${CMAKE_CURRENT_SOURCE_DIR}/third_party/ruy"
-    "${CMAKE_CURRENT_SOURCE_DIR}/third_party/kissfft"
-    "${CMAKE_CURRENT_SOURCE_DIR}/signal/micro/kernels"
-    "${CMAKE_CURRENT_SOURCE_DIR}/signal/src"
-    "${CMAKE_CURRENT_SOURCE_DIR}/signal/src/kiss_fft_wrappers")
+set(lib_incs
+          "${CMAKE_CURRENT_SOURCE_DIR}"
+          "${CMAKE_CURRENT_SOURCE_DIR}/third_party/gemmlowp"
+          "${CMAKE_CURRENT_SOURCE_DIR}/third_party/flatbuffers/include"
+          "${CMAKE_CURRENT_SOURCE_DIR}/third_party/ruy"
+          "${CMAKE_CURRENT_SOURCE_DIR}/third_party/kissfft"
+          "${CMAKE_CURRENT_SOURCE_DIR}/signal/micro/kernels"
+          "${CMAKE_CURRENT_SOURCE_DIR}/signal/src"
+          "${CMAKE_CURRENT_SOURCE_DIR}/signal/src/kiss_fft_wrappers")
+
+set(TFLM_INCS ${lib_incs} PARENT_SCOPE)
+set(TFLM_LIBS ${PROJECT_NAME} PARENT_SCOPE)
+
+target_include_directories(${PROJECT_NAME} PRIVATE ${lib_incs})
 
 target_compile_options(${PROJECT_NAME} PRIVATE
   -Wno-error=attributes
@@ -94,12 +97,12 @@ target_compile_options(${PROJECT_NAME} PRIVATE
   -Wno-error=double-promotion
   -Wno-type-limits)
 
-set(common_flags -DTF_LITE_DISABLE_X86_NEON -O3
+set(common_flags -DTF_LITE_DISABLE_X86_NEON -DTF_LITE_USE_CTIME -O3
     -Wstrict-aliasing -Wno-unused-parameter -Wall -Wextra -Wvla
     -Wsign-compare -Wdouble-promotion -Wswitch -Wunused-function
     -Wmissing-field-initializers -ffunction-sections -fdata-sections
     -Wshadow -Wunused-variable -fno-unwind-tables -fmessage-length=0)
 
-target_compile_options(${PROJECT_NAME} PRIVATE ${common_flags} -fmessage-length=0 -Wno-nonnull)
+target_compile_options(${PROJECT_NAME} PRIVATE ${common_flags} -fmessage-length=0 -Wno-nonnull -fdiagnostics-color=always)
 # target_compile_options(${PROJECT_NAME} INTERFACE -DTF_LITE_STATIC_MEMORY)
 target_link_libraries(${PROJECT_NAME} PRIVATE -lm)
